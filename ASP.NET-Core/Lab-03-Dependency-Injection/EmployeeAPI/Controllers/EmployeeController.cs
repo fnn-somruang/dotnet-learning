@@ -9,10 +9,15 @@ namespace EmployeeAPI.Controllers;
 public class EmployeeController : ControllerBase
 {
     private readonly IEmployeeService _employeeService;
+    private readonly IDepartmentService _departmentService;
 
-    public EmployeeController(IEmployeeService employeeService)
+    // รับ Dependencies ทั้ง 2 ตัวพร้อมกันผ่าน Constructor
+    public EmployeeController(
+        IEmployeeService employeeService,
+        IDepartmentService departmentService)
     {
         _employeeService = employeeService;
+        _departmentService = departmentService;
     }
 
     [HttpGet(Name = "GetEmployees")]
@@ -32,6 +37,22 @@ public class EmployeeController : ControllerBase
         }
 
         return Ok(employee);
+    }
+
+    // Endpoint ใหม่ที่เรียกใช้งานทั้ง 2 Services ร่วมกัน
+    [HttpGet("overview", Name = "GetCompanyOverview")]
+    public IActionResult GetCompanyOverview()
+    {
+        var employees = _employeeService.GetEmployees();
+        var departments = _departmentService.GetAll();
+
+        return Ok(new
+        {
+            TotalEmployees = employees.Count,
+            TotalDepartments = departments.Count(),
+            Departments = departments,
+            Employees = employees
+        });
     }
 
     [HttpPost(Name = "AddEmployee")]
